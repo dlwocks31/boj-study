@@ -1,21 +1,18 @@
-import { z } from "zod";
-
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "../trpc";
+import { getUserSolvedProblemIds } from "../../utils/boj";
+import { createTRPCRouter, publicProcedure } from "../trpc";
 
 export const exampleRouter = createTRPCRouter({
-  hello: publicProcedure
-    .input(z.object({ text: z.string() }))
-    .query(({ input }) => {
-      return {
-        greeting: `Hello ${input.text}`,
-      };
-    }),
+  getBoj: publicProcedure.query(async ({ ctx }) => {
+    const solvedAcClass2 = [
+      1018, 1181, 1259, 1920, 1978, 2164, 2609, 2751, 2798, 4153, 9012, 10250,
+      10814, 10816, 10828, 10845, 10866, 11050, 11650, 11866,
+    ];
 
-  getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.example.findMany();
-  }),
-
-  getSecretMessage: protectedProcedure.query(() => {
-    return "you can now see this secret message!";
+    const solved = await getUserSolvedProblemIds("goodboy302");
+    const classSolved = solved.filter((id) => solvedAcClass2.includes(id));
+    const classNotSolved = solvedAcClass2.filter(
+      (id) => !classSolved.includes(id)
+    );
+    return { classSolved, classNotSolved };
   }),
 });
