@@ -1,19 +1,38 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 
+import { match } from "ts-pattern";
 import { api } from "../utils/api";
 const solvedAcClass2 = [
   1978, 9012, 10828, 2798, 2751, 10250, 2609, 1181, 11650, 1920,
 ];
+
+type SolvedStatus =
+  | {
+      hasSubmission: true;
+      isAccepted: true;
+      lastAcceptedSubmissionId: number;
+      lastAcceptedSubmissionAt: string;
+    }
+  | {
+      hasSubmission: boolean;
+      isAccepted: false;
+    };
+
 const Home: NextPage = () => {
   const { data } = api.example.getBoj.useQuery({
-    userIds: ["goodboy302", "backchi"],
+    userIds: ["goodboy302", "backchi", "dlwocks31"],
+    problemIds: solvedAcClass2,
+    submittedAfter: "2023-01-01",
   });
 
   const goodboy302 =
-    data?.solved.find((user) => user.userId === "goodboy302")?.solved || [];
+    data?.find((user) => user.userId === "goodboy302")?.problems || [];
   const backchi =
-    data?.solved.find((user) => user.userId === "backchi")?.solved || [];
+    data?.find((user) => user.userId === "backchi")?.problems || [];
+
+  const dlwocks31 =
+    data?.find((user) => user.userId === "dlwocks31")?.problems || [];
 
   return (
     <>
@@ -28,8 +47,9 @@ const Home: NextPage = () => {
           <thead>
             <tr>
               <th className="w-1/6 text-center">Problem</th>
-              <th className="w-5/12 text-center">goodboy302</th>
-              <th className="w-5/12 text-center">backchi</th>
+              <th className="w-3/12 text-center">goodboy302</th>
+              <th className="w-3/12 text-center">backchi</th>
+              <th className="w-4/12 text-center">dlwocks31</th>
             </tr>
           </thead>
           <tbody>
@@ -38,12 +58,27 @@ const Home: NextPage = () => {
                 <td className="text-center">
                   <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
                 </td>
-                <td
-                  className={goodboy302.includes(problemId) ? "bg-success" : ""}
-                ></td>
-                <td className={backchi.includes(problemId) ? "bg-success" : ""}>
-                  {backchi.includes(problemId)}
-                </td>
+                <SolveItem
+                  userId="goodboy302"
+                  problemId={problemId}
+                  status={
+                    goodboy302.find((s) => s.problemId === problemId)?.status
+                  }
+                />
+                <SolveItem
+                  userId="backchi"
+                  problemId={problemId}
+                  status={
+                    backchi.find((s) => s.problemId === problemId)?.status
+                  }
+                />
+                <SolveItem
+                  userId="dlwocks31"
+                  problemId={problemId}
+                  status={
+                    dlwocks31.find((s) => s.problemId === problemId)?.status
+                  }
+                />
               </tr>
             ))}
           </tbody>
@@ -51,6 +86,30 @@ const Home: NextPage = () => {
       </div>
     </>
   );
+};
+
+const SolveItem = ({
+  userId,
+  problemId,
+  status,
+}: {
+  userId: string;
+  problemId: number;
+  status: SolvedStatus | undefined;
+}) => {
+  return match(status)
+    .with({ isAccepted: true }, (s) => (
+      <td className="bg-success text-center">
+        <a
+          href={`https://www.acmicpc.net/status?problem_id=${problemId}&user_id=${userId}`}
+          className="text-gray-700"
+        >
+          {s.lastAcceptedSubmissionAt}
+        </a>
+      </td>
+    ))
+    .with({ hasSubmission: true }, () => <td className="bg-error"></td>)
+    .otherwise(() => <td></td>);
 };
 
 export default Home;
