@@ -1,13 +1,15 @@
-import { getUserSubmission, getUserSubmittedProblemIds } from "./boj";
+import { getUserSubmission } from "./boj";
 
 describe("getUserSubmission", () => {
-  it("should return submission list", async () => {
-    const submissionList = await getUserSubmission("backchi", 1978);
+  it("한 유저의 특정 날짜 이후로의 제출들을 가져올 수 있다", async () => {
+    const submissionList = await getUserSubmission("goodboy302", {
+      afterSubmittedAt: "2023-01-01",
+    });
     console.log(submissionList);
   });
 
-  it("should return submitted problem list", async () => {
-    const problems = await getUserSubmittedProblemIds("goodboy302");
-    console.log(problems);
+  it("한 유저의 첫 페이지의 제출을 가져올 수 있다", async () => {
+    const submissionList = await getUserSubmission("backchi");
+    console.log(submissionList);
   });
 });

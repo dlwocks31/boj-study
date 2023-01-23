@@ -1,5 +1,7 @@
 import axios from "axios";
 import { load } from "cheerio";
+import { last } from "lodash";
+import { Submission } from "../types/submission";
 
 const instance = axios.create({
   baseURL: "https://www.acmicpc.net",
@@ -9,23 +11,10 @@ const instance = axios.create({
   },
 });
 
-export async function getUserSolvedProblemIds(
-  userId: string
-): Promise<number[]> {
-  const result = await instance.get(`https://www.acmicpc.net/user/${userId}`);
-
-  const $ = load(result.data);
-  const correctList = $(".problem-list")[0];
-  if (correctList) {
-    const a = load(correctList)("a");
-    return a.map((i, e) => +$(e).text()).get();
-  }
-  return [];
-}
-
 export async function getUserSubmittedProblemIds(
   userId: string
 ): Promise<{ accepted: number[]; wrong: number[] }> {
+  console.log("getUserSubmittedProblemIds", userId);
   const result = await instance.get(`https://www.acmicpc.net/user/${userId}`);
 
   const $ = load(result.data);
@@ -44,25 +33,57 @@ export async function getUserSubmittedProblemIds(
   return { accepted, wrong };
 }
 
-export async function getUserSubmission(userId: string, problemId: number) {
-  const result = await instance.get(
-    `https://www.acmicpc.net/status?problem_id=${problemId}&user_id=${userId}`
-  );
+export async function getUserSubmission(
+  userId: string,
+  params?: {
+    top?: string;
+    afterSubmittedAt?: string;
+  }
+): Promise<Submission[]> {
+  console.log("getUserSubmission", userId, params?.top || "");
+  const url = new URL("https://www.acmicpc.net/status");
+  if (params?.top) {
+    url.searchParams.append("top", params.top);
+  }
+  url.searchParams.append("user_id", userId);
+  const result = await instance.get(url.toString());
   const $ = load(result.data);
-  const submissionList: {
-    submissionId: number;
-    isAccepted: boolean;
-    submittedAt: string;
-  }[] = [];
-  const submissions = $("tbody tr");
-  submissions.each((i, e) => {
-    const submissionId = +$(e).find("td:nth-child(1)").text();
-    const isAccepted = $(e).find("td:nth-child(4)").text() === "맞았습니다!!";
+  const submissionElements = $("tbody tr");
 
-    const submittedAt: string =
-      $($(e).find("td:nth-child(9)")).find("a").attr("title") || "";
-    submissionList.push({ submissionId, isAccepted, submittedAt });
-  });
+  const submissions = submissionElements
+    .map((i, e) => {
+      const submissionId = +$(e).find("td:nth-child(1)").text();
+      const userId = $(e).find("td:nth-child(2)").text();
+      const problemId = +$(e).find("td:nth-child(3)").text();
+      const isAccepted = $(e).find("td:nth-child(4)").text() === "맞았습니다!!";
 
-  return submissionList;
+      const submittedAt: string =
+        $($(e).find("td:nth-child(9)")).find("a").attr("title") || "";
+      return { submissionId, problemId, isAccepted, submittedAt, userId };
+    })
+    .get();
+
+  const lastSubmission = last(submissions);
+  const afterSubmittedAt = params?.afterSubmittedAt;
+  if (
+    !lastSubmission ||
+    !afterSubmittedAt ||
+    lastSubmission.submittedAt <= afterSubmittedAt
+  ) {
+    return submissions.filter(
+      (s) => !afterSubmittedAt || s.submittedAt > afterSubmittedAt
+    );
+  }
+
+  const nextPageLink = $("a#next_page");
+  if (nextPageLink.length > 0) {
+    const nextPageUrl = new URL(nextPageLink.attr("href") || "", url);
+    const nextTopParam = nextPageUrl.searchParams.get("top");
+    if (nextTopParam) {
+      return submissions.concat(
+        await getUserSubmission(userId, { top: nextTopParam, afterSubmittedAt })
+      );
+    }
+  }
+  return submissions;
 }
