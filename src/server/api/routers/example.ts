@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { getUserSubmission } from "../../utils/boj";
+import { fetchUserSubmission } from "../../utils/boj";
+import { getSolveStatusOfProblem } from "../../utils/solve-status";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-
 
 export const exampleRouter = createTRPCRouter({
   getBoj: publicProcedure
@@ -14,12 +14,22 @@ export const exampleRouter = createTRPCRouter({
     )
     .query(async ({ input: { userIds, problemIds, submittedAfter } }) => {
       const userSubmissions = await Promise.all(
-        userIds.map((userId) => ({
+        userIds.map(async (userId) => ({
           userId,
-          submissions: getUserSubmission(userId, {
+          submissions: await fetchUserSubmission(userId, {
             afterSubmittedAt: submittedAfter,
           }),
         }))
       );
+
+      return userSubmissions.map((userSubmission) => {
+        const solveStatuses = problemIds.map((problemId) =>
+          getSolveStatusOfProblem(userSubmission.submissions, problemId)
+        );
+        return {
+          userId: userSubmission.userId,
+          solveStatuses,
+        };
+      });
     }),
 });

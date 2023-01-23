@@ -11,7 +11,7 @@ const instance = axios.create({
   },
 });
 
-export async function getUserSubmittedProblemIds(
+export async function fetchUserSubmittedProblemIds(
   userId: string
 ): Promise<{ accepted: number[]; wrong: number[] }> {
   console.log("getUserSubmittedProblemIds", userId);
@@ -33,14 +33,14 @@ export async function getUserSubmittedProblemIds(
   return { accepted, wrong };
 }
 
-export async function getUserSubmission(
+export async function fetchUserSubmission(
   userId: string,
   params?: {
     top?: string;
     afterSubmittedAt?: string;
   }
 ): Promise<Submission[]> {
-  console.log("getUserSubmission", userId, params?.top || "");
+  console.log("fetchUserSubmission", userId, params?.top || "");
   const url = new URL("https://www.acmicpc.net/status");
   if (params?.top) {
     url.searchParams.append("top", params.top);
@@ -81,7 +81,10 @@ export async function getUserSubmission(
     const nextTopParam = nextPageUrl.searchParams.get("top");
     if (nextTopParam) {
       return submissions.concat(
-        await getUserSubmission(userId, { top: nextTopParam, afterSubmittedAt })
+        await fetchUserSubmission(userId, {
+          top: nextTopParam,
+          afterSubmittedAt,
+        })
       );
     }
   }

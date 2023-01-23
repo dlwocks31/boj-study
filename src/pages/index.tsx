@@ -2,22 +2,11 @@ import { type NextPage } from "next";
 import Head from "next/head";
 
 import { match } from "ts-pattern";
+import { SolveStatus } from "../server/types/solve-status";
 import { api } from "../utils/api";
 const solvedAcClass2 = [
   1978, 9012, 10828, 2798, 2751, 10250, 2609, 1181, 11650, 1920,
 ];
-
-type SolvedStatus =
-  | {
-      hasSubmission: true;
-      isAccepted: true;
-      lastAcceptedSubmissionId: number;
-      lastAcceptedSubmissionAt: string;
-    }
-  | {
-      hasSubmission: boolean;
-      isAccepted: false;
-    };
 
 const Home: NextPage = () => {
   const { data } = api.example.getBoj.useQuery({
@@ -27,12 +16,12 @@ const Home: NextPage = () => {
   });
 
   const goodboy302 =
-    data?.find((user) => user.userId === "goodboy302")?.problems || [];
+    data?.find((user) => user.userId === "goodboy302")?.solveStatuses || [];
   const backchi =
-    data?.find((user) => user.userId === "backchi")?.problems || [];
+    data?.find((user) => user.userId === "backchi")?.solveStatuses || [];
 
   const dlwocks31 =
-    data?.find((user) => user.userId === "dlwocks31")?.problems || [];
+    data?.find((user) => user.userId === "dlwocks31")?.solveStatuses || [];
 
   return (
     <>
@@ -53,7 +42,7 @@ const Home: NextPage = () => {
             </tr>
           </thead>
           <tbody>
-            {solvedAcClass2.map((problemId) => (
+            {solvedAcClass2.map((problemId, i) => (
               <tr key={problemId}>
                 <td className="text-center">
                   <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
@@ -61,23 +50,17 @@ const Home: NextPage = () => {
                 <SolveItem
                   userId="goodboy302"
                   problemId={problemId}
-                  status={
-                    goodboy302.find((s) => s.problemId === problemId)?.status
-                  }
+                  status={goodboy302[i]}
                 />
                 <SolveItem
                   userId="backchi"
                   problemId={problemId}
-                  status={
-                    backchi.find((s) => s.problemId === problemId)?.status
-                  }
+                  status={backchi[i]}
                 />
                 <SolveItem
                   userId="dlwocks31"
                   problemId={problemId}
-                  status={
-                    dlwocks31.find((s) => s.problemId === problemId)?.status
-                  }
+                  status={dlwocks31[i]}
                 />
               </tr>
             ))}
@@ -95,7 +78,7 @@ const SolveItem = ({
 }: {
   userId: string;
   problemId: number;
-  status: SolvedStatus | undefined;
+  status: SolveStatus | undefined;
 }) => {
   return match(status)
     .with({ isAccepted: true }, (s) => (
@@ -104,7 +87,7 @@ const SolveItem = ({
           href={`https://www.acmicpc.net/status?problem_id=${problemId}&user_id=${userId}`}
           className="text-gray-700"
         >
-          {s.lastAcceptedSubmissionAt}
+          {s.firstAcceptedSubmissionAt}
         </a>
       </td>
     ))
