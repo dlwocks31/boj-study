@@ -70,9 +70,7 @@ export async function fetchUserSubmission(
     !afterSubmittedAt ||
     lastSubmission.submittedAt <= afterSubmittedAt
   ) {
-    return submissions.filter(
-      (s) => !afterSubmittedAt || s.submittedAt > afterSubmittedAt
-    );
+    return submissions;
   }
 
   const nextPageLink = $("a#next_page");

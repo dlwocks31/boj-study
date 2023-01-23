@@ -20,7 +20,11 @@ describe("GetSolveStatusOfProblem", () => {
       },
     ];
     const problemId = 1000;
-    const result = getSolveStatusOfProblem(submissions, problemId);
+    const result = getSolveStatusOfProblem(
+      submissions,
+      problemId,
+      "2021-01-01"
+    );
     expect(result).toEqual({
       hasSubmission: true,
       isAccepted: true,

@@ -3,10 +3,11 @@ import { Submission } from "../types/submission";
 
 export function getSolveStatusOfProblem(
   submissions: Submission[],
-  problemId: number
+  problemId: number,
+  afterSubmittedAt: string
 ): SolveStatus {
   const filteredSubmissions = submissions.filter(
-    (s) => s.problemId === problemId
+    (s) => s.problemId === problemId && s.submittedAt > afterSubmittedAt
   );
   if (filteredSubmissions.length === 0) {
     return { hasSubmission: false, isAccepted: false };

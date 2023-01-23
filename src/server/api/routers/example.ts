@@ -1,3 +1,4 @@
+import { concat, first, groupBy } from "lodash";
 import { z } from "zod";
 import { fetchUserSubmission } from "../../utils/boj";
 import { getSolveStatusOfProblem } from "../../utils/solve-status";
@@ -12,19 +13,57 @@ export const exampleRouter = createTRPCRouter({
         submittedAfter: z.string(),
       })
     )
-    .query(async ({ input: { userIds, problemIds, submittedAfter } }) => {
-      const userSubmissions = await Promise.all(
-        userIds.map(async (userId) => ({
-          userId,
-          submissions: await fetchUserSubmission(userId, {
-            afterSubmittedAt: submittedAfter,
-          }),
-        }))
+    .query(async ({ ctx, input: { userIds, problemIds, submittedAfter } }) => {
+      // first, get submission in database
+      const cachedSubmissions = await ctx.prisma.bojSubmission.findMany({
+        where: { userId: { in: userIds } },
+        orderBy: { submittedAt: "desc" },
+      });
+      const cachedSubmissionByUser = groupBy(
+        cachedSubmissions,
+        (s) => s.userId
       );
+
+      const userSubmissions = await Promise.all(
+        userIds.map(async (userId) => {
+          const lastCachedSubmission = first(cachedSubmissionByUser[userId]);
+          const afterSubmittedAt = lastCachedSubmission
+            ? lastCachedSubmission.submittedAt
+            : submittedAfter;
+
+          console.log("afterSubmittedAt", afterSubmittedAt);
+
+          const newSubmissions = (
+            await fetchUserSubmission(userId, {
+              afterSubmittedAt,
+            })
+          ).filter((s) => s.submittedAt > afterSubmittedAt);
+
+          console.log("newSubmissions", newSubmissions.length);
+          return {
+            userId,
+            newSubmissions,
+            submissions: concat(
+              newSubmissions,
+              cachedSubmissionByUser[userId] || []
+            ),
+          };
+        })
+      );
+
+      userSubmissions.forEach((userSubmission) => {
+        userSubmission.newSubmissions.forEach(async (submission) => {
+          await ctx.prisma.bojSubmission.create({ data: submission });
+        });
+      });
 
       return userSubmissions.map((userSubmission) => {
         const solveStatuses = problemIds.map((problemId) =>
-          getSolveStatusOfProblem(userSubmission.submissions, problemId)
+          getSolveStatusOfProblem(
+            userSubmission.submissions,
+            problemId,
+            submittedAfter
+          )
         );
         return {
           userId: userSubmission.userId,
