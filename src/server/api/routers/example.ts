@@ -24,6 +24,7 @@ export const exampleRouter = createTRPCRouter({
         (s) => s.userId
       );
 
+      // then, merge with new submissions
       const userSubmissions = await Promise.all(
         userIds.map(async (userId) => {
           const lastCachedSubmission = first(cachedSubmissionByUser[userId]);
@@ -51,6 +52,7 @@ export const exampleRouter = createTRPCRouter({
         })
       );
 
+      // finally, save new submissions to database
       userSubmissions.forEach((userSubmission) => {
         userSubmission.newSubmissions.forEach(async (submission) => {
           await ctx.prisma.bojSubmission.create({ data: submission });

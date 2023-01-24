@@ -23,9 +23,12 @@ export function getSolveStatusOfProblem(
       firstAcceptedSubmissionAt: firstAcceptedSubmission.submittedAt,
     };
   } else {
+    const lastSubmission = filteredSubmissions[filteredSubmissions.length - 1];
+
     return {
       hasSubmission: true,
       isAccepted: false,
+      lastSubmissionAt: lastSubmission!!.submittedAt,
     };
   }
 }

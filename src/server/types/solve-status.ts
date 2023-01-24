@@ -5,6 +5,11 @@ export type SolveStatus =
       firstAcceptedSubmissionAt: string;
     }
   | {
-      hasSubmission: boolean;
+      hasSubmission: true;
+      isAccepted: false;
+      lastSubmissionAt: string;
+    }
+  | {
+      hasSubmission: false;
       isAccepted: false;
     };

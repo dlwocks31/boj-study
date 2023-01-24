@@ -91,7 +91,16 @@ const SolveItem = ({
         </a>
       </td>
     ))
-    .with({ hasSubmission: true }, () => <td className="bg-error"></td>)
+    .with({ hasSubmission: true }, (s) => (
+      <td className="bg-error text-center">
+        <a
+          href={`https://www.acmicpc.net/status?problem_id=${problemId}&user_id=${userId}`}
+          className="text-gray-700"
+        >
+          {s.lastSubmissionAt}
+        </a>
+      </td>
+    ))
     .otherwise(() => <td></td>);
 };
 
