@@ -1,17 +1,27 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 
+import { useRouter } from "next/router";
 import { match } from "ts-pattern";
 import { SolveStatus } from "../server/types/solve-status";
 import { api } from "../utils/api";
-const solvedAcClass2 = [
-  1978, 9012, 10828, 2798, 2751, 10250, 2609, 1181, 11650, 1920,
-];
+
+const problemSet: { [key: string]: number[] } = {
+  class2_1: [1978, 9012, 10828, 2798, 2751, 10250, 2609, 1181, 11650, 1920],
+  class2_2: [10814, 1018, 10845, 4153, 2164, 10866, 10816, 11050, 11866, 1259],
+};
 
 const Home: NextPage = () => {
+  // get setId from query param
+  const router = useRouter();
+  const queriedSetId = router.query.setId;
+  const setId = typeof queriedSetId === "string" ? queriedSetId : "class2_1";
+
+  const problemIds = problemSet[setId] || [];
+
   const { data } = api.example.getBoj.useQuery({
     userIds: ["goodboy302", "backchi", "dlwocks31"],
-    problemIds: solvedAcClass2,
+    problemIds,
     submittedAfter: "2023-01-01",
   });
 
@@ -42,7 +52,7 @@ const Home: NextPage = () => {
             </tr>
           </thead>
           <tbody>
-            {solvedAcClass2.map((problemId, i) => (
+            {problemIds.map((problemId, i) => (
               <tr key={problemId}>
                 <td className="text-center">
                   <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
