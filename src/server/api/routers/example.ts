@@ -1,5 +1,6 @@
 import { concat, first, groupBy } from "lodash";
 import { z } from "zod";
+import type { Submission } from "../../types/submission";
 import { fetchUserSubmission } from "../../utils/boj";
 import { getSolveStatusOfProblem } from "../../utils/solve-status";
 import { createTRPCRouter, publicProcedure } from "../trpc";
@@ -37,6 +38,9 @@ export const exampleRouter = createTRPCRouter({
           const newSubmissions = (
             await fetchUserSubmission(userId, {
               afterSubmittedAt,
+            }).catch((e): Submission[] => {
+              console.error(e);
+              return [];
             })
           ).filter((s) => s.submittedAt > afterSubmittedAt);
 
