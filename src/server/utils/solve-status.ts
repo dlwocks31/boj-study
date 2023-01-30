@@ -1,5 +1,5 @@
-import { SolveStatus } from "../types/solve-status";
-import { Submission } from "../types/submission";
+import type { SolveStatus } from "../types/solve-status";
+import type { Submission } from "../types/submission";
 
 export function getSolveStatusOfProblem(
   submissions: Submission[],
@@ -24,11 +24,11 @@ export function getSolveStatusOfProblem(
     };
   } else {
     const lastSubmission = filteredSubmissions[filteredSubmissions.length - 1];
-
+    if (!lastSubmission) throw new Error("lastSubmission is null");
     return {
       hasSubmission: true,
       isAccepted: false,
-      lastSubmissionAt: lastSubmission!!.submittedAt,
+      lastSubmissionAt: lastSubmission.submittedAt,
     };
   }
 }

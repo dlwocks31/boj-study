@@ -53,10 +53,11 @@ export const exampleRouter = createTRPCRouter({
       );
 
       // finally, save new submissions to database
-      userSubmissions.forEach((userSubmission) => {
-        userSubmission.newSubmissions.forEach(async (submission) => {
-          await ctx.prisma.bojSubmission.create({ data: submission });
-        });
+      const allNewSubmissions = userSubmissions.flatMap(
+        (userSubmission) => userSubmission.newSubmissions
+      );
+      await ctx.prisma.bojSubmission.createMany({
+        data: allNewSubmissions,
       });
 
       return userSubmissions.map((userSubmission) => {

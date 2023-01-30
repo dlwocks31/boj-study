@@ -1,8 +1,8 @@
-import { Submission } from "../types/submission";
+import type { Submission } from "../types/submission";
 import { getSolveStatusOfProblem } from "./solve-status";
 
 describe("GetSolveStatusOfProblem", () => {
-  it("특정 유저의 submission을 주면, 그를 통해 특정 문제의 제출 상태를 확인할 수 있다.", async () => {
+  it("특정 유저의 submission을 주면, 그를 통해 특정 문제의 제출 상태를 확인할 수 있다.", () => {
     const submissions: Submission[] = [
       {
         problemId: 1000,
