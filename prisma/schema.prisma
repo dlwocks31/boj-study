@@ -20,6 +20,12 @@ model BojSubmission {
     submittedAt  String
 }
 
+model BojProblem {
+    id        Int    @id @default(autoincrement())
+    problemId Int    @unique
+    title     String
+}
+
 // Necessary for Next auth
 // model Account {
 //     id                String  @id @default(cuid())
