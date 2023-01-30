@@ -1,7 +1,7 @@
 import axios from "axios";
 import { load } from "cheerio";
 import { last } from "lodash";
-import { Submission } from "../types/submission";
+import type { Submission } from "../types/submission";
 
 const instance = axios.create({
   baseURL: "https://www.acmicpc.net",
@@ -10,28 +10,6 @@ const instance = axios.create({
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
   },
 });
-
-export async function fetchUserSubmittedProblemIds(
-  userId: string
-): Promise<{ accepted: number[]; wrong: number[] }> {
-  console.log("getUserSubmittedProblemIds", userId);
-  const result = await instance.get(`https://www.acmicpc.net/user/${userId}`);
-
-  const $ = load(result.data);
-  const correctList = $(".problem-list")[0];
-  const wrongList = $(".problem-list")[1];
-  const accepted: number[] = [];
-  const wrong: number[] = [];
-  if (correctList) {
-    const a = load(correctList)("a");
-    accepted.push(...a.map((i, e) => +$(e).text()).get());
-  }
-  if (wrongList) {
-    const a = load(wrongList)("a");
-    wrong.push(...a.map((i, e) => +$(e).text()).get());
-  }
-  return { accepted, wrong };
-}
 
 export async function fetchUserSubmission(
   userId: string,
@@ -47,7 +25,7 @@ export async function fetchUserSubmission(
   }
   url.searchParams.append("user_id", userId);
   const result = await instance.get(url.toString());
-  const $ = load(result.data);
+  const $ = load(result.data as string);
   const submissionElements = $("tbody tr");
 
   const submissions = submissionElements

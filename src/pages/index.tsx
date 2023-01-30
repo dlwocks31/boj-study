@@ -3,7 +3,7 @@ import Head from "next/head";
 
 import { useRouter } from "next/router";
 import { match } from "ts-pattern";
-import { SolveStatus } from "../server/types/solve-status";
+import type { SolveStatus } from "../server/types/solve-status";
 import { api } from "../utils/api";
 
 const problemSet: { [key: string]: number[] } = {
