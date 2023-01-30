@@ -9,6 +9,7 @@ import { api } from "../utils/api";
 const problemSet: { [key: string]: number[] } = {
   class2_1: [1978, 9012, 10828, 2798, 2751, 10250, 2609, 1181, 11650, 1920],
   class2_2: [10814, 1018, 10845, 4153, 2164, 10866, 10816, 11050, 11866, 1259],
+  week2: [1463, 1260, 11399, 11047, 9095, 2178, 1003, 2606, 2667, 11726],
 };
 
 const Home: NextPage = () => {
@@ -18,21 +19,17 @@ const Home: NextPage = () => {
   const setId = typeof queriedSetId === "string" ? queriedSetId : "class2_1";
 
   const problemIds = problemSet[setId] || [];
-
+  const userIds = ["goodboy302", "backchi", "dlwocks31"];
   const { data } = api.example.getBoj.useQuery({
-    userIds: ["goodboy302", "backchi", "dlwocks31"],
+    userIds,
     problemIds,
     submittedAfter: "2023-01-01",
   });
 
-  const goodboy302 =
-    data?.find((user) => user.userId === "goodboy302")?.solveStatuses || [];
-  const backchi =
-    data?.find((user) => user.userId === "backchi")?.solveStatuses || [];
-
-  const dlwocks31 =
-    data?.find((user) => user.userId === "dlwocks31")?.solveStatuses || [];
-
+  const dataMap = new Map<string, SolveStatus[]>();
+  data?.forEach((user) => {
+    dataMap.set(user.userId, user.solveStatuses);
+  });
   return (
     <>
       <Head>
@@ -46,9 +43,11 @@ const Home: NextPage = () => {
           <thead>
             <tr>
               <th className="w-1/6 text-center">Problem</th>
-              <th className="w-3/12 text-center">goodboy302</th>
-              <th className="w-3/12 text-center">backchi</th>
-              <th className="w-4/12 text-center">dlwocks31</th>
+              {userIds.map((userId) => (
+                <th className="w-3/12 text-center" key={userId}>
+                  {userId}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -57,21 +56,17 @@ const Home: NextPage = () => {
                 <td className="text-center">
                   <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
                 </td>
-                <SolveItem
-                  userId="goodboy302"
-                  problemId={problemId}
-                  status={goodboy302[i]}
-                />
-                <SolveItem
-                  userId="backchi"
-                  problemId={problemId}
-                  status={backchi[i]}
-                />
-                <SolveItem
-                  userId="dlwocks31"
-                  problemId={problemId}
-                  status={dlwocks31[i]}
-                />
+                {userIds.map((userId) => {
+                  const status = dataMap.get(userId)?.[i];
+                  return (
+                    <SolveItem
+                      userId={userId}
+                      problemId={problemId}
+                      status={status}
+                      key={userId}
+                    />
+                  );
+                })}
               </tr>
             ))}
           </tbody>

@@ -34,7 +34,7 @@ export async function fetchUserSubmission(
       const userId = $(e).find("td:nth-child(2)").text();
       const problemId = +$(e).find("td:nth-child(3)").text();
       const statusText = $(e).find("td:nth-child(4)").text();
-      if (statusText.includes("채점중") || statusText.includes("채점 대기중"))
+      if (statusText.includes("채점") || statusText.includes("기다리는"))
         return null;
       const isAccepted = statusText === "맞았습니다!!";
       const submittedAt: string =
