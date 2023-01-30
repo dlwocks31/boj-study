@@ -33,13 +33,16 @@ export async function fetchUserSubmission(
       const submissionId = +$(e).find("td:nth-child(1)").text();
       const userId = $(e).find("td:nth-child(2)").text();
       const problemId = +$(e).find("td:nth-child(3)").text();
-      const isAccepted = $(e).find("td:nth-child(4)").text() === "맞았습니다!!";
-
+      const statusText = $(e).find("td:nth-child(4)").text();
+      if (statusText.includes("채점중") || statusText.includes("채점 대기중"))
+        return null;
+      const isAccepted = statusText === "맞았습니다!!";
       const submittedAt: string =
         $($(e).find("td:nth-child(9)")).find("a").attr("title") || "";
       return { submissionId, problemId, isAccepted, submittedAt, userId };
     })
-    .get();
+    .get()
+    .filter((s): s is Submission => s !== null);
 
   const lastSubmission = last(submissions);
   const afterSubmittedAt = params?.afterSubmittedAt;
