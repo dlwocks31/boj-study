@@ -24,7 +24,7 @@ const SetDetail: NextPage<PageProps> = ({ initialSolveStatuses }) => {
 
   const problemIds = problemSet[setId?.toString() || ""] || [];
 
-  const { data } = api.example.getBoj.useQuery({
+  const { data, isFetching } = api.example.getBoj.useQuery({
     userIds,
     problemIds,
     submittedAfter,
@@ -42,6 +42,12 @@ const SetDetail: NextPage<PageProps> = ({ initialSolveStatuses }) => {
   return (
     <div className="flex flex-col items-center">
       <h1 className="p-4 text-2xl font-bold">Algorithm Study: Set {setId}</h1>
+      {isFetching && (
+        <div className="text-center text-lg">
+          <div>최신 데이터 가져오는 중..</div>
+          <progress className="progress progress-info w-56"></progress>
+        </div>
+      )}
       <table className="table w-full">
         <thead>
           <tr>
