@@ -1,25 +1,43 @@
+import { groupBy } from "lodash";
+import type { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import { match } from "ts-pattern";
 import { problemSet } from "..";
+import { prisma } from "../../server/db";
 import type { SolveStatus } from "../../server/types/solve-status";
+import { getSolveStatusOfProblem } from "../../server/utils/solve-status";
 import { api } from "../../utils/api";
 
-const SetDetail = () => {
+const userIds = ["goodboy302", "backchi", "dlwocks31"];
+const submittedAfter = "2023-01-01";
+
+type PageProps = {
+  initialSolveStatuses: {
+    userId: string;
+    solveStatuses: SolveStatus[];
+  }[];
+};
+const SetDetail: NextPage<PageProps> = ({ initialSolveStatuses }) => {
   // get setId from path
   const router = useRouter();
   const { setId } = router.query;
 
   const problemIds = problemSet[setId?.toString() || ""] || [];
-  const userIds = ["goodboy302", "backchi", "dlwocks31"];
+
   const { data } = api.example.getBoj.useQuery({
     userIds,
     problemIds,
-    submittedAfter: "2023-01-01",
+    submittedAfter,
   });
 
   const dataMap = new Map<string, SolveStatus[]>();
   data?.forEach((user) => {
     dataMap.set(user.userId, user.solveStatuses);
+  });
+
+  const initialDataMap = new Map<string, SolveStatus[]>();
+  initialSolveStatuses.forEach((user) => {
+    initialDataMap.set(user.userId, user.solveStatuses);
   });
   return (
     <div className="flex flex-col items-center">
@@ -42,7 +60,8 @@ const SetDetail = () => {
                 <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
               </td>
               {userIds.map((userId) => {
-                const status = dataMap.get(userId)?.[i];
+                const status =
+                  dataMap.get(userId)?.[i] || initialDataMap.get(userId)?.[i];
                 return (
                   <SolveItem
                     userId={userId}
@@ -91,6 +110,40 @@ const SolveItem = ({
       </td>
     ))
     .otherwise(() => <td></td>);
+};
+
+export const getServerSideProps: GetServerSideProps<PageProps> = async (
+  context
+) => {
+  const cachedSubmissions = await prisma.bojSubmission.findMany({
+    where: { userId: { in: userIds } },
+    orderBy: { submittedAt: "desc" },
+  });
+  const cachedSubmissionByUser = Object.entries(
+    groupBy(cachedSubmissions, (s) => s.userId)
+  ).map(([userId, submissions]) => ({ userId, submissions }));
+
+  const { setId } = context?.query;
+  const problemIds = problemSet[setId?.toString() || ""] || [];
+
+  const solveStatuses = cachedSubmissionByUser.map((userSubmission) => {
+    const solveStatuses = problemIds.map((problemId) =>
+      getSolveStatusOfProblem(
+        userSubmission.submissions,
+        problemId,
+        submittedAfter
+      )
+    );
+    return {
+      userId: userSubmission.userId,
+      solveStatuses,
+    };
+  });
+  return {
+    props: {
+      initialSolveStatuses: solveStatuses,
+    },
+  };
 };
 
 export default SetDetail;
