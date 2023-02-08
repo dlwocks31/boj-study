@@ -46,38 +46,40 @@ const SetDetail: NextPage<PageProps> = ({ initialSolveStatuses }) => {
           <progress className="progress progress-info w-56"></progress>
         </div>
       )}
-      <table className="table w-full">
-        <thead>
-          <tr>
-            <th className="w-1/6 text-center">Problem</th>
-            {userIds.map((userId) => (
-              <th className="w-3/12 text-center" key={userId}>
-                {userId}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {problemIds.map((problemId, i) => (
-            <tr key={problemId}>
-              <td className="text-center">
-                <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
-              </td>
-              {userIds.map((userId) => {
-                const status = dataMap.get(userId)?.[i];
-                return (
-                  <SolveItem
-                    userId={userId}
-                    problemId={problemId}
-                    status={status}
-                    key={userId}
-                  />
-                );
-              })}
+      <div className="w-full overflow-x-auto">
+        <table className="table w-full">
+          <thead>
+            <tr>
+              <th className="text-center">Problem</th>
+              {userIds.map((userId) => (
+                <th className="text-center" key={userId}>
+                  {userId}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {problemIds.map((problemId, i) => (
+              <tr key={problemId}>
+                <th className="text-center">
+                  <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
+                </th>
+                {userIds.map((userId) => {
+                  const status = dataMap.get(userId)?.[i];
+                  return (
+                    <SolveItem
+                      userId={userId}
+                      problemId={problemId}
+                      status={status}
+                      key={userId}
+                    />
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
