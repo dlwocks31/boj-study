@@ -39,9 +39,11 @@ const SetDetail: NextPage<PageProps> = ({ initialSolveStatuses }) => {
   });
   return (
     <div className="flex flex-col items-center">
-      <h1 className="p-4 text-2xl font-bold">Algorithm Study: Set {setId}</h1>
+      <h1 className="p-4 text-xl font-bold lg:text-2xl">
+        Algorithm Study: Set {setId}
+      </h1>
       {isFetching && (
-        <div className="text-center text-lg">
+        <div className="text-center">
           <div>최신 데이터 가져오는 중..</div>
           <progress className="progress progress-info w-56"></progress>
         </div>
@@ -61,7 +63,7 @@ const SetDetail: NextPage<PageProps> = ({ initialSolveStatuses }) => {
           <tbody>
             {problemIds.map((problemId, i) => (
               <tr key={problemId}>
-                <th className="text-center">
+                <th className="text-center text-sm lg:text-base">
                   <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
                 </th>
                 {userIds.map((userId) => {
@@ -95,7 +97,7 @@ const SolveItem = ({
 }) => {
   return match(status)
     .with({ isAccepted: true }, (s) => (
-      <td className="bg-success text-center">
+      <td className="bg-success text-center text-sm lg:text-base">
         <a
           href={`https://www.acmicpc.net/status?problem_id=${problemId}&user_id=${userId}`}
           className="text-gray-700"
