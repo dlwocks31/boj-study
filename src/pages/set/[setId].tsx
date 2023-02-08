@@ -24,20 +24,18 @@ const SetDetail: NextPage<PageProps> = ({ initialSolveStatuses }) => {
 
   const problemIds = problemSet[setId?.toString() || ""] || [];
 
-  const { data, isFetching } = api.example.getBoj.useQuery({
-    userIds,
-    problemIds,
-    submittedAfter,
-  });
+  const { data, isFetching } = api.example.getBoj.useQuery(
+    {
+      userIds,
+      problemIds,
+      submittedAfter,
+    },
+    { initialData: initialSolveStatuses }
+  );
 
   const dataMap = new Map<string, SolveStatus[]>();
   data?.forEach((user) => {
     dataMap.set(user.userId, user.solveStatuses);
-  });
-
-  const initialDataMap = new Map<string, SolveStatus[]>();
-  initialSolveStatuses.forEach((user) => {
-    initialDataMap.set(user.userId, user.solveStatuses);
   });
   return (
     <div className="flex flex-col items-center">
@@ -66,8 +64,7 @@ const SetDetail: NextPage<PageProps> = ({ initialSolveStatuses }) => {
                 <a href={`https://boj.kr/${problemId}`}>{problemId}</a>
               </td>
               {userIds.map((userId) => {
-                const status =
-                  dataMap.get(userId)?.[i] || initialDataMap.get(userId)?.[i];
+                const status = dataMap.get(userId)?.[i];
                 return (
                   <SolveItem
                     userId={userId}
