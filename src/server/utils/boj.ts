@@ -34,9 +34,10 @@ export async function fetchUserSubmission(
       const userId = $(e).find("td:nth-child(2)").text();
       const problemId = +$(e).find("td:nth-child(3)").text();
       const statusText = $(e).find("td:nth-child(4)").text();
+      const statusData = $(e).find("td:nth-child(4) > span").attr("data-color");
       if (statusText.includes("채점") || statusText.includes("기다리는"))
         return null;
-      const isAccepted = statusText === "맞았습니다!!";
+      const isAccepted = statusData === "ac";
       const submittedAt: string =
         $($(e).find("td:nth-child(9)")).find("a").attr("title") || "";
       return { submissionId, problemId, isAccepted, submittedAt, userId };
